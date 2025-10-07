@@ -2,9 +2,9 @@ name: Node.js CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ main ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ main ]
 
 jobs:
   build:
@@ -12,19 +12,22 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
         with:
-          node-version: '22'
-          registry-url: 'https://registry.npmjs.org'
+          node-version: 22
+          cache: 'npm'
 
-      - name: Clean npm cache
+      - name: Clean npm cache (safety step)
         run: npm cache clean --force
 
-      - name: Install dependencies (safe mode)
-        run: npm install --legacy-peer-deps
+      - name: Configure npm registry
+        run: npm config set registry https://registry.npmjs.org/
+
+      - name: Install dependencies safely
+        run: npm install --legacy-peer-deps || npm install --force
 
       - name: Run tests
-        run: npm test
+        run: npx jest --coverage
